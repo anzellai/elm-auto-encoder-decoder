@@ -496,11 +496,28 @@ encoderPatternMatchesRHS varPrefix index constructor =
                 CustomTypeConstructor (TitleCaseDotPhrase s) list ->
                     let
                         rhs =
-                            ("encodeString " ++ jsonString s)
+                            ("encodeString "
+                                ++ "\""
+                                ++ (jsonString s
+                                        |> String.split "."
+                                        |> List.reverse
+                                        |> List.take 1
+                                        |> String.join ""
+                                        |> String.replace "\"" ""
+                                   )
+                                ++ "\""
+                            )
                                 :: List.indexedMap (encoderSourceFromCustomTypeConstructor varPrefix) list
                                 |> String.join ", "
+
+                        bits =
+                            String.split ", " rhs
                     in
-                    "Json.Encode.list identity [ " ++ rhs ++ " ]"
+                    if List.length bits > 1 then
+                        "Json.Encode.list identity [ " ++ rhs ++ " ]"
+
+                    else
+                        rhs
 
                 ConstructorTypeParam s ->
                     varPrefix ++ String.fromInt index
@@ -737,7 +754,7 @@ decoderBodyOf elmTypeDef =
                         |> List.map (\s -> "                " ++ s)
             in
             List.append
-                ("""Json.Decode.index 0 Json.Decode.string
+                ("""Json.Decode.string
         |> Json.Decode.andThen
             (\\word ->
                 case word of""" :: cases)
@@ -761,7 +778,15 @@ decoderPatternMatchesLHS : CustomTypeConstructor -> String
 decoderPatternMatchesLHS constructor =
     case constructor of
         CustomTypeConstructor (TitleCaseDotPhrase s) list ->
-            jsonString s
+            "\""
+                ++ (jsonString s
+                        |> String.split "."
+                        |> List.reverse
+                        |> List.take 1
+                        |> String.join ""
+                        |> String.replace "\"" ""
+                   )
+                ++ "\""
 
         ConstructorTypeParam s ->
             """-- varPrefix ++ String.fromInt index"""

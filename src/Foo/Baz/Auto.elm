@@ -180,7 +180,7 @@ decode_Unit  =
 encodeMaybe : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
 encodeMaybe arga value =
     case value of
-        (Nothing) -> (Json.Encode.list identity [ encodeString "Nothing" ])
+        (Nothing) -> (encodeString "Nothing")
         (Just m0) -> (Json.Encode.list identity [ encodeString "Just", (arga m0) ])
 
 
@@ -195,7 +195,7 @@ encodeResult argx arga value =
 {-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Nothing") [],CustomTypeConstructor (TitleCaseDotPhrase "Just") [ConstructorTypeParam "a"]], name = TypeName "Maybe" ["a"] } -}
 decodeMaybe : (Json.Decode.Decoder (a)) -> Json.Decode.Decoder (Maybe a)
 decodeMaybe arga =
-    Json.Decode.index 0 Json.Decode.string
+    Json.Decode.string
         |> Json.Decode.andThen
             (\word ->
                 case word of
@@ -210,7 +210,7 @@ decodeMaybe arga =
 {-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Err") [ConstructorTypeParam "x"],CustomTypeConstructor (TitleCaseDotPhrase "Ok") [ConstructorTypeParam "a"]], name = TypeName "Result" ["x","a"] } -}
 decodeResult : (Json.Decode.Decoder (x)) -> (Json.Decode.Decoder (a)) -> Json.Decode.Decoder (Result x a)
 decodeResult argx arga =
-    Json.Decode.index 0 Json.Decode.string
+    Json.Decode.string
         |> Json.Decode.andThen
             (\word ->
                 case word of
@@ -236,7 +236,7 @@ encodeFooBazRecord value =
 encodeFooBazTransparent : Foo.Baz.Transparent -> Json.Encode.Value
 encodeFooBazTransparent value =
     case value of
-        (Foo.Baz.Transparent m0) -> (Json.Encode.list identity [ encodeString "Foo.Baz.Transparent", encodeInt m0 ])
+        (Foo.Baz.Transparent m0) -> (Json.Encode.list identity [ encodeString "Transparent", encodeInt m0 ])
 
 {-| TypeAliasDef (AliasRecordType (TypeName "Foo.Baz.Record" []) [CustomField (FieldName "title") (CustomTypeConstructor (TitleCaseDotPhrase "String") [])]) -}
 decodeFooBazRecord : Json.Decode.Decoder (Foo.Baz.Record)
@@ -249,11 +249,11 @@ decodeFooBazRecord  =
 {-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Foo.Baz.Transparent") [CustomTypeConstructor (TitleCaseDotPhrase "Int") []]], name = TypeName "Foo.Baz.Transparent" [] } -}
 decodeFooBazTransparent : Json.Decode.Decoder (Foo.Baz.Transparent)
 decodeFooBazTransparent  =
-    Json.Decode.index 0 Json.Decode.string
+    Json.Decode.string
         |> Json.Decode.andThen
             (\word ->
                 case word of
-                    "Foo.Baz.Transparent" -> (Json.Decode.succeed Foo.Baz.Transparent |> (Json.Decode.map2 (|>) ( (Json.Decode.index 1 (decodeInt)))))
+                    "Transparent" -> (Json.Decode.succeed Foo.Baz.Transparent |> (Json.Decode.map2 (|>) ( (Json.Decode.index 1 (decodeInt)))))
                     _ -> Json.Decode.fail ("Unexpected Foo.Baz.Transparent: " ++ word)
             )
                  
